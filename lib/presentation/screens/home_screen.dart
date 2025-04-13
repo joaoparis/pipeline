@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pipeline/presentation/widgets/pipeline_page_widget.dart';
 
+import 'footer_tips_widget.dart';
+
 class HomeScreen extends StatelessWidget {
   final VoidCallback onThemeToggle;
 
@@ -24,7 +26,12 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: const PipelinePageWidget(),
+      body: const Column(
+        children: [
+          PipelinePageWidget(),
+          FooterTipsWidget(),
+        ],
+      ),
     );
   }
 }

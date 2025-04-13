@@ -173,16 +173,19 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
       childWhenDragging: _buildGhostChildContainer(task),
       feedback: _buildFeedbackContainer(task, sectionIndex),
       maxSimultaneousDrags: 1,
-      onDragStarted: () => scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text("Moving to a new section..."))),
+      onDragStarted: () {
+        scaffoldMessenger.clearSnackBars();
+        scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text("Moving to a new section...")));
+      },
       onDragCompleted: () {
-        scaffoldMessenger.hideCurrentSnackBar();
+        scaffoldMessenger.clearSnackBars();
         scaffoldMessenger.showSnackBar(SnackBar(
             content:
                 Text("Moved from ${sections[sectionIndex].title} section")));
       },
       onDraggableCanceled: (vel, offset) {
-        scaffoldMessenger.hideCurrentSnackBar();
+        scaffoldMessenger.clearSnackBars();
         scaffoldMessenger
             .showSnackBar(const SnackBar(content: Text("Moving canceled")));
       },
