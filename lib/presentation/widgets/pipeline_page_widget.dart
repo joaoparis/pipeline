@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:pipeline/domain/section.dart';
 import 'package:pipeline/domain/task.dart';
 
 class PipelinePageWidget extends StatefulWidget {
@@ -11,10 +12,12 @@ class PipelinePageWidget extends StatefulWidget {
 }
 
 class _PipelinePageWidgetState extends State<PipelinePageWidget> {
-  final List<bool> _isExpanded = [true, true, true];
-  final List<bool> _isHovered = [false, false, false]; // Track hover state
-  late bool _isDragging = false;
-
+  late bool _isDraggingTask = false;
+  final List<Section> sections = [
+    Section(0, 'icebox 🧊', true, false),
+    Section(1, 'working 🔨', true, false),
+    Section(2, 'done ✅', true, false),
+  ];
   final List<List<Task>> _taskLists = [
     [
       Task('1', '😎', 'Task 1', 'description', '30/02/2029', '25/12/2029',
@@ -48,32 +51,34 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
         expandedHeaderPadding: EdgeInsets.zero,
         dividerColor: Theme.of(context).primaryColorLight,
         materialGapSize: 0.0,
-        children: [
-          buildExpansionPanel('icebox 🧊', 0),
-          buildExpansionPanel('working 🔨', 1),
-          buildExpansionPanel('done ✅', 2),
-        ],
+        children: buildExpansionPanel(sections),
       ),
     );
   }
 
-  void setExpandedState(int index, bool isExpanded) {
-    log("index $index : $isExpanded");
+  void setExpandedState(int itemListIndex, bool isExpanded) {
+    log("index $itemListIndex : $isExpanded");
     setState(() {
-      _isExpanded[index] = isExpanded;
+      sections[itemListIndex].isExpanded = isExpanded;
     });
   }
 
-  ExpansionPanel buildExpansionPanel(String title, int index) {
-    return ExpansionPanel(
-      headerBuilder: (context, isExpanded) {
-        return buildListTitle(title);
-      },
-      body: buildListBody(index),
-      isExpanded: _isExpanded[index],
-      canTapOnHeader: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-    );
+  List<ExpansionPanel> buildExpansionPanel(List<Section> sections) {
+    List<ExpansionPanel> expansionPanels = [];
+    for (var element in sections) {
+      final panel = ExpansionPanel(
+        headerBuilder: (context, isExpanded) {
+          return buildListTitle(element.title);
+        },
+        body: buildListBody(element.id),
+        isExpanded: element.isExpanded,
+        canTapOnHeader: true,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      );
+      expansionPanels.add(panel);
+    }
+
+    return expansionPanels;
   }
 
   Padding buildListTitle(String title) {
@@ -89,43 +94,52 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
     );
   }
 
-  Widget buildListBody(int index) {
+  Widget buildListBody(int sectionIndex) {
     return DragTarget<Task>(
       onWillAcceptWithDetails: (details) {
-        setState(() => _isHovered[index] = true);
+        setState(() => sections[sectionIndex].isHovered = true);
         return true;
       },
       onLeave: (data) {
-        setState(() => _isHovered[index] = false);
+        setState(() => sections[sectionIndex].isHovered = false);
       },
       onAcceptWithDetails: (details) {
-        _moveTask(details.data, index);
-        setState(() => _isHovered[index] = false);
-        setState(() => _isDragging = false);
+        _moveTask(details.data, sectionIndex);
+        setState(() => sections[sectionIndex].isHovered = false);
+        setState(() => _isDraggingTask = false);
       },
       onMove: (details) {
-        setState(() => _isDragging = true);
+        setState(() => _isDraggingTask = true);
       },
       builder: (context, candidateData, rejectData) => AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: buildListBoxes(index),
+        decoration: buildListBoxes(sectionIndex),
         child: SizedBox(
-          height: _taskLists[index].isEmpty ? 50 : null,
+          height: _taskLists[sectionIndex].isEmpty ? 50 : null,
           child: ReorderableListView(
             buildDefaultDragHandles: false,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
+            onReorderStart: (oldIndex) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                      "Reorganizing ${sections[sectionIndex].title} section...")));
+            },
             onReorder: (oldIndex, newIndex) {
               setState(() {
                 if (newIndex > oldIndex) newIndex--;
-                final task = _taskLists[index].removeAt(oldIndex);
-                _taskLists[index].insert(newIndex, task);
+                final task = _taskLists[sectionIndex].removeAt(oldIndex);
+                _taskLists[sectionIndex].insert(newIndex, task);
               });
             },
-            children: List.generate(_taskLists[index].length, (taskIndex) {
-              final task = _taskLists[index][taskIndex];
-              return _buildDraggableTask(index, taskIndex, task);
+            onReorderEnd: (newIndex) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+            children:
+                List.generate(_taskLists[sectionIndex].length, (taskIndex) {
+              final task = _taskLists[sectionIndex][taskIndex];
+              return _buildDraggableTask(sectionIndex, taskIndex, task);
             }),
           ),
         ),
@@ -134,36 +148,47 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
   }
 
   BoxDecoration buildListBoxes(int index) {
-    return _isHovered[index]
-        ? BoxDecoration(
-            color: Colors.blue.withOpacity(0.3),
-            border: Border.all(color: Colors.blue, width: 2),
-            borderRadius: BorderRadius.circular(8),
-          )
-        : _isDragging
-            ? BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                border: Border.all(color: Colors.transparent, width: 2),
-                borderRadius: BorderRadius.circular(8),
-              )
-            : BoxDecoration(
-                color: Colors.transparent,
-                border: Border.all(color: Colors.transparent, width: 2),
-                borderRadius: BorderRadius.circular(8),
-              );
+    var opacity = Colors.transparent;
+    var border = Colors.transparent;
+    if (sections[index].isHovered) {
+      opacity = Colors.blue.withOpacity(0.3);
+      border = Colors.blue;
+    } else if (_isDraggingTask) {
+      opacity = Colors.blue.withOpacity(0.1);
+    }
+
+    return BoxDecoration(
+      color: opacity,
+      border: Border.all(color: border, width: 2),
+      borderRadius: BorderRadius.circular(8),
+    );
   }
 
-  Widget _buildDraggableTask(int panelIndex, int taskIndex, Task task) {
+  Widget _buildDraggableTask(int sectionIndex, int taskIndex, Task task) {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     return LongPressDraggable<Task>(
       key: ValueKey(task.id),
       delay: const Duration(milliseconds: 100),
       data: task,
       childWhenDragging: _buildGhostChildContainer(task),
-      feedback: _buildFeedbackContainer(task, panelIndex),
+      feedback: _buildFeedbackContainer(task, sectionIndex),
       maxSimultaneousDrags: 1,
+      onDragStarted: () => scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text("Moving to a new section..."))),
+      onDragCompleted: () {
+        scaffoldMessenger.hideCurrentSnackBar();
+        scaffoldMessenger.showSnackBar(SnackBar(
+            content:
+                Text("Moved from ${sections[sectionIndex].title} section")));
+      },
+      onDraggableCanceled: (vel, offset) {
+        scaffoldMessenger.hideCurrentSnackBar();
+        scaffoldMessenger
+            .showSnackBar(const SnackBar(content: Text("Moving canceled")));
+      },
       child: Stack(
         children: [
-          _taskItem(task, taskIndex, panelIndex), // Task UI
+          _taskItem(task, taskIndex, sectionIndex), // Task UI
         ],
       ),
     );

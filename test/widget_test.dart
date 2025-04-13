@@ -16,4 +16,11 @@ void main() {
 
     expect(find.byType(HomeScreen), findsOneWidget);
   });
+
+  testWidgets('When app starts should display HomeScreen',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(PipelineApp());
+
+    expect(find.byType(HomeScreen), findsOneWidget);
+  });
 }
