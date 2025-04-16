@@ -251,9 +251,7 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
             ),
             Expanded(
               flex: 3,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
+              child: ListView(
                 children: [
                   Center(
                     child: Text(

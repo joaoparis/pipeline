@@ -5,22 +5,22 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pipeline/pipeline_app.dart';
-import 'package:pipeline/presentation/screens/home_screen.dart';
+import 'package:pipeline/presentation/widgets/pipeline_page_widget.dart';
 
 void main() {
-  testWidgets('When app starts should display HomeScreen',
+  testWidgets('Expansion panel expands when tapped',
       (WidgetTester tester) async {
-    await tester.pumpWidget(PipelineApp());
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: PipelinePageWidget(),
+      ),
+    );
 
-    expect(find.byType(HomeScreen), findsOneWidget);
-  });
-//TODO: test your code...
-  testWidgets('When app starts should display HomeScreen',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(PipelineApp());
+    await tester.tap(find.text('icebox 🧊'));
+    await tester.pumpAndSettle();
 
-    expect(find.byType(HomeScreen), findsOneWidget);
+    expect(find.text('Task 1'), findsOneWidget);
   });
 }

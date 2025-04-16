@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pipeline/presentation/screens/add_task_button_widget.dart';
 import 'package:pipeline/presentation/widgets/pipeline_page_widget.dart';
 
 import 'footer_tips_widget.dart';
@@ -40,10 +41,15 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: const Column(
+      body: const Stack(
         children: [
-          PipelinePageWidget(),
-          FooterTipsWidget(),
+          Column(
+            children: [
+              PipelinePageWidget(),
+              FooterTipsWidget(),
+            ],
+          ),
+          AddTaskButtonWidget(),
         ],
       ),
     );
