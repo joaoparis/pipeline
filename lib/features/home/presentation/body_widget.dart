@@ -1,17 +1,13 @@
-import 'dart:developer';
+import 'package:pipeline/features/features.dart';
 
-import 'package:flutter/material.dart';
-import 'package:pipeline/domain/section.dart';
-import 'package:pipeline/domain/task.dart';
-
-class PipelinePageWidget extends StatefulWidget {
-  const PipelinePageWidget({super.key});
+class BodyWidget extends StatefulWidget {
+  const BodyWidget({super.key});
 
   @override
-  State<PipelinePageWidget> createState() => _PipelinePageWidgetState();
+  State<BodyWidget> createState() => _BodyWidgetState();
 }
 
-class _PipelinePageWidgetState extends State<PipelinePageWidget> {
+class _BodyWidgetState extends State<BodyWidget> {
   late bool _isDraggingTask = false;
   final List<Section> sections = [
     Section(0, 'icebox 🧊', true, false),
@@ -24,7 +20,7 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
           '08/03/2029', Colors.red),
       Task('2', '😎', 'Task 2', 'description', '30/02/2029', '25/12/2029',
           '08/03/2029', Colors.green),
-      Task('3', '😎', 'Task 3', 'description', '30/02/2029', '25/12/2029',
+      Task('101', '😎', 'Task 3', 'description', '30/02/2029', '25/12/2029',
           '08/03/2029', Colors.blue)
     ], // Icebox
     [
@@ -57,7 +53,7 @@ class _PipelinePageWidgetState extends State<PipelinePageWidget> {
   }
 
   void setExpandedState(int itemListIndex, bool isExpanded) {
-    log("index $itemListIndex : $isExpanded");
+    debugPrint("index $itemListIndex : $isExpanded");
     setState(() {
       sections[itemListIndex].isExpanded = isExpanded;
     });

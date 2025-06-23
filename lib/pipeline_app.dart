@@ -1,14 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:pipeline/core/themes/themes.dart';
-
-import 'presentation/screens/home_screen.dart';
+import 'package:pipeline/pipeline.dart';
 
 class PipelineApp extends StatelessWidget {
   final ValueNotifier<ThemeMode> _themeMode = ValueNotifier(ThemeMode.dark);
 
   PipelineApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<ThemeMode>(
@@ -19,7 +15,7 @@ class PipelineApp extends StatelessWidget {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: currentMode,
-            home: HomeScreen(
+            home: HomePageWidget(
               onThemeToggle: () {
                 _themeMode.value = currentMode == ThemeMode.light
                     ? ThemeMode.dark

@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pipeline/presentation/widgets/pipeline_page_widget.dart';
+import 'package:pipeline/features/home/main/body_widget.dart';
 
 void main() {
   testWidgets('Expansion panel expands when tapped',

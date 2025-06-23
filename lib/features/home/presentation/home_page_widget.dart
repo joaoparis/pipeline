@@ -1,13 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:pipeline/presentation/screens/add_task_button_widget.dart';
-import 'package:pipeline/presentation/widgets/pipeline_page_widget.dart';
+import 'package:pipeline/features/features.dart';
 
-import 'footer_tips_widget.dart';
-
-class HomeScreen extends StatelessWidget {
+class HomePageWidget extends StatelessWidget {
   final VoidCallback onThemeToggle;
 
-  const HomeScreen({super.key, required this.onThemeToggle});
+  const HomePageWidget({super.key, required this.onThemeToggle});
 
   //TODO: Settings menu:
   //      [ ] Toggle nightmode
@@ -41,16 +37,20 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: const Stack(
-        children: [
-          Column(
-            children: [
-              PipelinePageWidget(),
-              FooterTipsWidget(),
-            ],
-          ),
-          AddTaskButtonWidget(),
-        ],
+      body: const SingleChildScrollView(
+        child: Column(
+          children: [
+            BodyWidget(),
+            FooterTipsWidget(),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("TODO: add a new task")));
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

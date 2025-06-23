@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:pipeline/presentation/widgets/pipeline_page_widget.dart';
+import 'package:pipeline/features/features.dart';
 
 class FooterTipsWidget extends StatelessWidget {
   const FooterTipsWidget({
