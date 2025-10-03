@@ -1,7 +1,7 @@
-import 'data.dart';
+import 'package:pipeline/features/home/data/data.dart';
 
 class Task {
-  final String id;
+  final int id;
   final String emoji;
   final String title;
   final String description;
@@ -10,8 +10,16 @@ class Task {
   final String goalEndDate;
   final Color color;
 
-  Task(this.id, this.emoji, this.title, this.description, this.startDate,
-      this.actualEndDate, this.goalEndDate, this.color);
+  Task({
+    required this.id,
+    required this.emoji,
+    required this.title,
+    required this.description,
+    required this.startDate,
+    required this.actualEndDate,
+    required this.goalEndDate,
+    required this.color,
+  });
 
   @override
   bool operator ==(Object other) => other is Task && other.id == id;

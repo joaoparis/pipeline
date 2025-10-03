@@ -1,4 +1,6 @@
 import 'package:pipeline/features/features.dart';
+import 'package:pipeline/features/home/data/task_manager.dart';
+import 'package:provider/provider.dart';
 
 class BodyWidget extends StatefulWidget {
   const BodyWidget({super.key});
@@ -9,38 +11,34 @@ class BodyWidget extends StatefulWidget {
 
 class _BodyWidgetState extends State<BodyWidget> {
   late bool _isDraggingTask = false;
+  late List<List<Task>> _taskLists;
   final List<Section> sections = [
     Section(0, 'icebox 🧊', true, false),
     Section(1, 'working 🔨', true, false),
     Section(2, 'done ✅', true, false),
   ];
-  final List<List<Task>> _taskLists = [
-    [
-      Task('1', '😎', 'Task 1', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.red),
-      Task('2', '😎', 'Task 2', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.green),
-      Task('101', '😎', 'Task 3', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.blue)
-    ], // Icebox
-    [
-      Task('4', '😎', 'Task 4', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.redAccent),
-      Task('5', '😎', 'Task 5', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.greenAccent),
-      Task('6', '😎', 'Task 6', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.blueAccent)
-    ], // Working
-    [
-      Task('7', '😎', 'Task 7', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.orange),
-      Task('8', '😎', 'Task 8', 'description', '30/02/2029', '25/12/2029',
-          '08/03/2029', Colors.lightGreen)
-    ] // Done
-  ];
+
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initTasks();
+  }
+
+  Future<void> _initTasks() async {
+    final manager = Provider.of<TasksManager>(context, listen: false);
+    await manager.loadTasks();
+    setState(() => _loading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final manager = Provider.of<TasksManager>(context);
+    _taskLists = manager.tasks;
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return SingleChildScrollView(
       child: ExpansionPanelList(
         expansionCallback: setExpandedState,
@@ -111,34 +109,39 @@ class _BodyWidgetState extends State<BodyWidget> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: buildListBoxes(sectionIndex),
-        child: SizedBox(
-          height: _taskLists[sectionIndex].isEmpty ? 50 : null,
-          child: ReorderableListView(
-            buildDefaultDragHandles: false,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            onReorderStart: (oldIndex) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                      "Reorganizing ${sections[sectionIndex].title} section...")));
-            },
-            onReorder: (oldIndex, newIndex) {
-              setState(() {
-                if (newIndex > oldIndex) newIndex--;
-                final task = _taskLists[sectionIndex].removeAt(oldIndex);
-                _taskLists[sectionIndex].insert(newIndex, task);
-              });
-            },
-            onReorderEnd: (newIndex) {
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            },
-            children:
-                List.generate(_taskLists[sectionIndex].length, (taskIndex) {
-              final task = _taskLists[sectionIndex][taskIndex];
-              return _buildDraggableTask(sectionIndex, taskIndex, task);
-            }),
-          ),
-        ),
+        child: LayoutBuilder(builder: (context, constraints) {
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: constraints.maxWidth,
+              maxWidth: constraints.maxWidth,
+            ),
+            child: ReorderableListView(
+              buildDefaultDragHandles: false,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              onReorderStart: (oldIndex) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(
+                        "Reorganizing ${sections[sectionIndex].title} section...")));
+              },
+              onReorder: (oldIndex, newIndex) {
+                setState(() {
+                  if (newIndex > oldIndex) newIndex--;
+                  final task = _taskLists[sectionIndex].removeAt(oldIndex);
+                  _taskLists[sectionIndex].insert(newIndex, task);
+                });
+              },
+              onReorderEnd: (newIndex) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+              children:
+                  List.generate(_taskLists[sectionIndex].length, (taskIndex) {
+                final task = _taskLists[sectionIndex][taskIndex];
+                return _buildDraggableTask(sectionIndex, taskIndex, task);
+              }),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -196,7 +199,10 @@ class _BodyWidgetState extends State<BodyWidget> {
   Widget _buildFeedbackContainer(Task task, int panelIndex) {
     return Material(
       type: MaterialType.transparency, // Ensures consistent styling
-      child: _buildTaskContainer(task, panelIndex),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        child: _buildTaskContainer(task, panelIndex),
+      ),
     );
   }
 
@@ -215,7 +221,6 @@ class _BodyWidgetState extends State<BodyWidget> {
     return Container(
       key: ValueKey(task.id),
       height: 50,
-      width: 400,
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
         color: task.color,
@@ -223,20 +228,16 @@ class _BodyWidgetState extends State<BodyWidget> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Flex(
-          direction: Axis.horizontal,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Text(
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Text(
                 task.emoji,
                 style: const TextStyle(
                     color: Colors.white, fontWeight: FontWeight.bold),
               ),
-            ),
-            Expanded(
-              flex: 8,
-              child: Padding(
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Text(
                   task.title,
@@ -244,10 +245,7 @@ class _BodyWidgetState extends State<BodyWidget> {
                       color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 3,
-              child: ListView(
+              Column(
                 children: [
                   Center(
                     child: Text(
@@ -265,8 +263,8 @@ class _BodyWidgetState extends State<BodyWidget> {
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -5,15 +5,15 @@ class HomePageWidget extends StatelessWidget {
 
   const HomePageWidget({super.key, required this.onThemeToggle});
 
+  //TODO: Task fullscreen view
+  //TODO: Add a task
+  //TODO: Update a task
+  //TODO: Read tasks info from JSON file
   //TODO: Settings menu:
   //      [ ] Toggle nightmode
   //      [ ] Manage sections (number & naming)
   //      [ ] Import/Export JSON file
-  //TODO: Task fullscreen view
   //TODO: Task preview
-  //TODO: Read tasks info from JSON file
-  //TODO: Add a task
-  //TODO: Update a task
   //TODO: Delete a task (by swiping right or via trash can icon in the preview & fullscreen modes)
   //TODO: Archive task (by swiping left or via archive icon in the preview & fullscreen modes)
   //TODO: Remove Windows Native navbar
